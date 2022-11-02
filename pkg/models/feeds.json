@@ -1,0 +1,31 @@
+[
+    {
+        "name": "Banner",
+        "title": "",
+        "type": "home",
+        "view_type": "banner",
+        "paralink": "bannner",
+        "order": 1,
+        "sections": [
+            {
+                "title": "",
+                "para": "someparalink",
+                "image": "objectID"
+            },
+            {
+                "title": "",
+                "image": "objectID"
+            },
+            {
+                "title": "",
+                "para": "someparalink",
+                "image": "objectID"
+            },
+            {
+                "title": "",
+                "para": "someparalink",
+                "image": "objectID"
+            }
+        ]
+    },
+]
