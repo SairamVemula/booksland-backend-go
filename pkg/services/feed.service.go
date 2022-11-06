@@ -84,6 +84,29 @@ func (fs *FeedService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 						}},
 					}},
 				}},
+				bson.D{{
+					"$lookup", bson.D{
+						{"from", "media"},
+						{"let", bson.M{"image_id": "$image"}},
+						{"pipeline", bson.A{
+							bson.D{{
+								"$match", bson.D{{
+									"$expr",
+									bson.D{{
+										"$and",
+										bson.A{
+											bson.D{{"$eq", bson.A{"$_id", "$$image_id"}}},
+										},
+									}},
+								}},
+							}},
+						},
+						},
+						{"as", "image"},
+					},
+				}},
+				bson.D{{"$unwind", bson.D{{"path", "$image"}, {"preserveNullAndEmptyArrays", true}}}},
+				bson.D{{Key: "$addFields", Value: bson.M{"image.url": bson.D{{"$concat", bson.A{fs.configs.AssetsUrl, "$image.path"}}}}}},
 			},
 			},
 			{"as", "sections.course"},
@@ -107,6 +130,59 @@ func (fs *FeedService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 							},
 						}},
 					}},
+				}},
+				bson.D{{
+					"$lookup", bson.D{
+						{"from", "media"},
+						{"let", bson.M{"image_id": "$image"}},
+						{"pipeline", bson.A{
+							bson.D{{
+								"$match", bson.D{{
+									"$expr",
+									bson.D{{
+										"$and",
+										bson.A{
+											bson.D{{"$eq", bson.A{"$_id", "$$image_id"}}},
+										},
+									}},
+								}},
+							}},
+						},
+						},
+						{"as", "image"},
+					},
+				}},
+				bson.D{{"$unwind", bson.D{{"path", "$image"}, {"preserveNullAndEmptyArrays", true}}}},
+				bson.D{{Key: "$addFields", Value: bson.M{"image.url": bson.D{{"$concat", bson.A{fs.configs.AssetsUrl, "$image.path"}}}}}},
+				bson.D{{
+					"$lookup", bson.D{
+						{"from", "stocks"},
+						{"let", bson.M{"book_id": "$_id"}},
+						{"pipeline", bson.A{
+							bson.D{{
+								"$match", bson.D{{
+									"$expr",
+									bson.D{{
+										"$and",
+										bson.A{
+											bson.D{{"$eq", bson.A{"$book_id", "$$book_id"}}},
+											bson.D{{"$eq", bson.A{"$status", "available"}}},
+										},
+									}},
+								}},
+							}},
+							bson.D{{
+								"$group", bson.D{
+									{"_id", bson.D{{"publisher", "$publisher"}, {"year", "$year"}}},
+									{"prices", bson.D{{"$push", "$price"}}},
+									{"discount_percents", bson.D{{"$push", "$discount_percent"}}},
+									{"count", bson.D{{"$sum", 1}}},
+								},
+							}},
+						},
+						},
+						{"as", "stocks"},
+					},
 				}},
 			},
 			},
@@ -151,6 +227,7 @@ func (fs *FeedService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 			{"paralink", bson.M{"$first": "$paralink"}},
 			{"title", bson.M{"$first": "$title"}},
 			{"type", bson.M{"$first": "$type"}},
+			{"view_type", bson.M{"$first": "$view_type"}},
 			{"created_by", bson.M{"$first": "$created_by"}},
 			{"order", bson.M{"$first": "$order"}},
 		}},

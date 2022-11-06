@@ -52,7 +52,7 @@ func saveFileinAssests(fileHeader *multipart.FileHeader) (filelocation string, e
 		return
 	}
 	// Create a new file in the uploads directory
-	filelocation = fmt.Sprintf("/assets/%s-%d%s", strings.Split(fileHeader.Filename, ".")[0], time.Now().UnixMilli(), filepath.Ext(fileHeader.Filename))
+	filelocation = fmt.Sprintf("/assets/%s-%d%s", strings.Split(strings.ReplaceAll(fileHeader.Filename, " ", "-"), ".")[0], time.Now().UnixMilli(), filepath.Ext(fileHeader.Filename))
 	dst, err := os.Create("." + filelocation)
 	if err != nil {
 		return

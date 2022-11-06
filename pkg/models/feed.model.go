@@ -11,7 +11,7 @@ type Feed struct {
 	Name      string             `validate:"required,min=2,max=50" json:"name,omitempty" bson:"name,omitempty"`
 	Title     string             `json:"title,omitempty" bson:"title,omitempty"`
 	Type      string             `json:"type,omitempty" bson:"type,omitempty"`           // sections,courses,books
-	ViewType  string             `json:"view_type,omitempty" bson:"view_type,omitempty"` // banner, 2colgrid, rowgrid,colgrid
+	ViewType  string             `json:"view_type,omitempty" bson:"view_type,omitempty"` // banner, 2dvstack, vstack,hstack
 	Linked    string             `json:"linked,omitempty" bson:"linked,omitempty"`
 	Paralink  string             `validate:"required,min=2,max=50" json:"paralink,omitempty" bson:"paralink,omitempty"`
 	Sections  []Section          `json:"sections,omitempty" bson:"sections,omitempty"`
