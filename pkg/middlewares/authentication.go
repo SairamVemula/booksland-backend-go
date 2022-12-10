@@ -37,8 +37,10 @@ func contains(s []string, str string) bool {
 
 func (ea *EnsureAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var user models.User
+	// log.Println(r.URL)
 
 	tokenString := r.Header.Get("Authorization")
+	// log.Println(tokenString)
 	if len(tokenString) == 0 && len(ea.roles) != 0 {
 		utils.ResponseError(&w, &utils.RestError{Code: http.StatusUnauthorized, Message: "Missing Authorization Header"})
 		return

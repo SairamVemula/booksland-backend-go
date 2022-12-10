@@ -19,7 +19,7 @@ func setupCORS(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "*")
 }
 func ResponseSuccess(w *http.ResponseWriter, response interface{}) {
-	setupCORS(w)
+	// setupCORS(w)
 	res, _ := json.Marshal(Response{http.StatusOK, "success", response})
 	(*w).WriteHeader(http.StatusOK)
 	(*w).Write(res)
@@ -30,13 +30,13 @@ func ResponseValidationError(w *http.ResponseWriter, err *models.ValidationError
 }
 
 func ResponseStringError(w *http.ResponseWriter, s string) {
-	setupCORS(w)
+	// setupCORS(w)
 	res, _ := json.Marshal(BadRequest(s))
 	(*w).WriteHeader(http.StatusBadRequest)
 	(*w).Write(res)
 }
 func ResponseError(w *http.ResponseWriter, response *RestError) {
-	setupCORS(w)
+	// setupCORS(w)
 	res, _ := json.Marshal(response)
 	(*w).WriteHeader(response.Code)
 	(*w).Write(res)

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/SairamVemula/booksland-backend-go/pkg/models"
 	"github.com/SairamVemula/booksland-backend-go/pkg/services"
@@ -32,6 +33,7 @@ func (ac *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		utils.ResponseValidationError(&w, &err)
 		return
 	}
+	models.NewUser(user)
 	res, e := ac.authService.Register(r.Context(), user)
 	if e != nil {
 		utils.ResponseError(&w, e)
@@ -57,6 +59,24 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		utils.ResponseError(&w, e)
 		return
 	}
+	// cookie := http.Cookie{
+	// 	Name:     "access_token",
+	// 	Value:    res.Token,
+	// 	Path:     "/",
+	// 	Expires:  time.Now().Add(time.Minute * time.Duration(ac.configs.JwtExpiration)),
+	// 	HttpOnly: true,
+	// 	Domain:   "http://localhost:3000/",
+	// }
+	// http.SetCookie(w, &cookie)
+	// cookie = http.Cookie{
+	// 	Name:     "refresh_token",
+	// 	Value:    res.RefreshToken,
+	// 	Path:     "/",
+	// 	Expires:  time.Now().Add(time.Minute * time.Duration(ac.configs.RefreshJwtExpiration)),
+	// 	HttpOnly: true,
+	// 	Domain:   "http://localhost:3000/",
+	// }
+	// http.SetCookie(w, &cookie)
 	utils.ResponseSuccess(&w, res)
 
 }
@@ -75,6 +95,7 @@ func (ac *AuthController) ResetPassword(w http.ResponseWriter, r *http.Request) 
 
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
+	TokenExpiry int64  `json:"token_expiry"`
 }
 
 func (ac *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
@@ -82,17 +103,26 @@ func (ac *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
 	if refresh_token == "" {
 		utils.ResponseStringError(&w, "refresh_token is required")
 	}
-	user_id, err := ac.authService.ValidateRefreshToken(refresh_token)
+	user_id, user_type, err := ac.authService.ValidateRefreshToken(r.Context(), refresh_token)
 	if err != nil {
 		utils.ResponseStringError(&w, err.Error())
 		return
 	}
-	token, err := ac.authService.GenerateAccessToken(r.Context(), user_id, "admin")
+	token, err := ac.authService.GenerateAccessToken(r.Context(), user_id, user_type)
 	if err != nil {
 		utils.ResponseStringError(&w, err.Error())
 		return
 	}
-	utils.ResponseSuccess(&w, &TokenResponse{token})
+	// cookie := http.Cookie{
+	// 	Name:     "access_token",
+	// 	Value:    token,
+	// 	Path:     "/",
+	// 	Expires:  time.Now().Add(time.Minute * time.Duration(ac.configs.JwtExpiration)),
+	// 	HttpOnly: true,
+	// 	Domain:   "http://localhost:3000/",
+	// }
+	// http.SetCookie(w, &cookie)
+	utils.ResponseSuccess(&w, &TokenResponse{token, (time.Now().UnixMilli() + int64(ac.configs.JwtExpiration*60000)) - (1 * 60 * 1000)})
 }
 
 func (ac *AuthController) Logout(w http.ResponseWriter, r *http.Request) {

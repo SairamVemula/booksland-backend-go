@@ -87,7 +87,36 @@ func (bs *BookService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 	}
 	imageUnwindStage := bson.D{{"$unwind", bson.D{{"path", "$image"}, {"preserveNullAndEmptyArrays", true}}}}
 	setStage := bson.D{{Key: "$addFields", Value: bson.M{"image.url": bson.D{{"$concat", bson.A{bs.configs.AssetsUrl, "$image.path"}}}}}}
-
+	stockLookup := bson.D{{
+		"$lookup", bson.D{
+			{"from", "stocks"},
+			{"let", bson.M{"book_id": "$_id"}},
+			{"pipeline", bson.A{
+				bson.D{{
+					"$match", bson.D{{
+						"$expr",
+						bson.D{{
+							"$and",
+							bson.A{
+								bson.D{{"$eq", bson.A{"$book_id", "$$book_id"}}},
+								bson.D{{"$eq", bson.A{"$status", "available"}}},
+							},
+						}},
+					}},
+				}},
+				bson.D{{
+					"$group", bson.D{
+						{"_id", bson.D{{"publisher", "$publisher"}, {"year", "$year"}}},
+						{"prices", bson.D{{"$push", "$price"}}},
+						{"discount_percents", bson.D{{"$push", "$discount_percent"}}},
+						{"count", bson.D{{"$sum", 1}}},
+					},
+				}},
+			},
+			},
+			{"as", "stocks"},
+		},
+	}}
 	coursePipelineStage := bson.D{
 		{"$lookup", bson.D{
 			{"from", "courses"},
@@ -124,7 +153,7 @@ func (bs *BookService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 		},
 	}}
 	unwindStage2 := bson.D{{"$unwind", "$total"}}
-	pipeline := mongo.Pipeline{matchStage, imagePipelineStage, imageUnwindStage, setStage, coursePipelineStage, courseUnwindStage, facetStage, unwindStage2}
+	pipeline := mongo.Pipeline{matchStage, imagePipelineStage, imageUnwindStage, setStage, stockLookup, coursePipelineStage, courseUnwindStage, facetStage, unwindStage2}
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
@@ -147,8 +176,7 @@ func (bs *BookService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 	}
 	return books[0], nil
 }
-func (bs *BookService) FindById(ctx context.Context, book_id string) (*models.Book, *utils.RestError) {
-	var book models.Book
+func (bs *BookService) FindById(ctx context.Context, book_id string) (*primitive.M, *utils.RestError) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	id, e := primitive.ObjectIDFromHex(book_id)
@@ -156,12 +184,79 @@ func (bs *BookService) FindById(ctx context.Context, book_id string) (*models.Bo
 		RestError := utils.NotFound("Invalid user_id")
 		return nil, RestError
 	}
-	err := bs.bc.FindOne(ctx, bson.M{"_id": id}).Decode(&book)
+	matchStage := bson.D{{"$match", bson.M{"_id": id}}}
+	mediaLookup := bson.D{{
+		"$lookup", bson.D{
+			{"from", "media"},
+			{"let", bson.M{"image_id": "$image"}},
+			{"pipeline", bson.A{
+				bson.D{{
+					"$match", bson.D{{
+						"$expr",
+						bson.D{{
+							"$and",
+							bson.A{
+								bson.D{{"$eq", bson.A{"$_id", "$$image_id"}}},
+							},
+						}},
+					}},
+				}},
+			},
+			},
+			{"as", "image"},
+		},
+	}}
+	mediaUnWind := bson.D{{"$unwind", bson.D{{"path", "$image"}, {"preserveNullAndEmptyArrays", true}}}}
+	mediaConcat := bson.D{{Key: "$addFields", Value: bson.M{"image.url": bson.D{{"$concat", bson.A{bs.configs.AssetsUrl, "$image.path"}}}}}}
+	stockLookup := bson.D{{
+		"$lookup", bson.D{
+			{"from", "stocks"},
+			{"let", bson.M{"book_id": "$_id"}},
+			{"pipeline", bson.A{
+				bson.D{{
+					"$match", bson.D{{
+						"$expr",
+						bson.D{{
+							"$and",
+							bson.A{
+								bson.D{{"$eq", bson.A{"$book_id", "$$book_id"}}},
+								bson.D{{"$eq", bson.A{"$status", "available"}}},
+							},
+						}},
+					}},
+				}},
+				bson.D{{
+					"$group", bson.D{
+						{"_id", bson.D{{"publisher", "$publisher"}, {"year", "$year"}}},
+						{"prices", bson.D{{"$push", "$price"}}},
+						{"discount_percents", bson.D{{"$push", "$discount_percent"}}},
+						{"count", bson.D{{"$sum", 1}}},
+					},
+				}},
+			},
+			},
+			{"as", "stocks"},
+		},
+	}}
+	pipeline := mongo.Pipeline{matchStage, mediaLookup, mediaUnWind, mediaConcat, stockLookup}
+	cursor, err := bs.bc.Aggregate(ctx, pipeline)
+
 	if err != nil {
-		RestError := utils.NotFound("user not found.")
+		// return nil, utils.InternalErr("Internal Server Error")
+		return nil, utils.InternalErr(err.Error())
+	}
+	defer cursor.Close(ctx)
+
+	var books []bson.M
+	if err = cursor.All(context.TODO(), &books); err != nil {
+		// RestError := utils.InternalErr("Internal Server Error")
+		RestError := utils.InternalErr(err.Error())
 		return nil, RestError
 	}
-	return &book, nil
+	if len(books) == 0 {
+		return nil, utils.BadRequest("No Book found")
+	}
+	return &books[0], nil
 }
 
 func (bs *BookService) DeleteById(ctx context.Context, book_id string) *utils.RestError {
@@ -184,7 +279,7 @@ func (bs *BookService) DeleteById(ctx context.Context, book_id string) *utils.Re
 	return nil
 }
 
-func (bs *BookService) UpdateById(ctx context.Context, book_id string, updateBook *models.Book) (*models.Book, *utils.RestError) {
+func (bs *BookService) UpdateById(ctx context.Context, book_id string, updateBook *models.Book) (*primitive.M, *utils.RestError) {
 	id, e := primitive.ObjectIDFromHex(book_id)
 	if e != nil {
 		RestError := utils.NotFound("Invalid user_id")

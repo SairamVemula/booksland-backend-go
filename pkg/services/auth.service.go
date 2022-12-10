@@ -56,7 +56,9 @@ func (as *AuthService) Login(ctx context.Context, loginUser *models.LoginUser) (
 		}
 	}
 	user.Token = token
+	user.TokenExpiry = (time.Now().UnixMilli() + int64(as.configs.JwtExpiration*60000)) - (15 * 60 * 1000)
 	user.RefreshToken = refresh
+	user.RefreshTokenExpiry = (time.Now().UnixMilli() + int64(as.configs.RefreshJwtExpiration*60000))
 	user.Password = ""
 	return user, nil
 }
@@ -144,7 +146,7 @@ func (as *AuthService) GenerateRefreshToken(ctx context.Context, user_id string)
 	return
 }
 
-func (m *AuthService) ValidateRefreshToken(tokenString string) (string, error) {
+func (m *AuthService) ValidateRefreshToken(ctx context.Context, tokenString string) (string, string, error) {
 
 	token, err := jwt.ParseWithClaims(tokenString, &RefreshTokenCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -168,16 +170,25 @@ func (m *AuthService) ValidateRefreshToken(tokenString string) (string, error) {
 
 	if err != nil {
 		// m.logger.Error("unable to parse claims", "error", err)
-		return "", err
+		return "", "", err
 	}
 
 	claims, ok := token.Claims.(*RefreshTokenCustomClaims)
 	m.logger.Debug("ok", ok)
 	if !ok || !token.Valid || claims.UserID == "" || claims.KeyType != "refresh" {
 		m.logger.Debug("could not extract claims from token")
-		return "", errors.New("invalid token: authentication failed")
+		return "", "", errors.New("invalid token: authentication failed")
 	}
-	return claims.UserID, nil
+
+	user, errf := m.us.FindById(ctx, claims.UserID)
+	if errf != nil {
+		return "", "", errors.New(errf.Message)
+	}
+	if user.RefreshToken != tokenString {
+		return "", "", errors.New("invalid token: authentication failed")
+	}
+
+	return claims.UserID, user.Type, nil
 }
 
 func (as *AuthService) Logout(ctx context.Context, user *models.User) {

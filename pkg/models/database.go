@@ -10,15 +10,16 @@ import (
 )
 
 var (
-	DB                *mongo.Database
-	Client            *mongo.Client
-	UsersCollection   *mongo.Collection
-	MediaCollection   *mongo.Collection
-	BooksCollection   *mongo.Collection
-	CoursesCollection *mongo.Collection
-	StocksCollection  *mongo.Collection
-	OrdersCollection  *mongo.Collection
-	FeedsCollection   *mongo.Collection
+	DB                  *mongo.Database
+	Client              *mongo.Client
+	UsersCollection     *mongo.Collection
+	MediaCollection     *mongo.Collection
+	BooksCollection     *mongo.Collection
+	CoursesCollection   *mongo.Collection
+	StocksCollection    *mongo.Collection
+	OrdersCollection    *mongo.Collection
+	FeedsCollection     *mongo.Collection
+	CartItemsCollection *mongo.Collection
 )
 
 func Connect(uri string, dbname string, logger hclog.Logger) error {
@@ -43,6 +44,7 @@ func Connect(uri string, dbname string, logger hclog.Logger) error {
 	CoursesCollection = DB.Collection("courses")
 	StocksCollection = DB.Collection("stocks")
 	OrdersCollection = DB.Collection("orders")
+	CartItemsCollection = DB.Collection("cartitems")
 
 	log.Println("Connected to MongoDB!")
 	return nil

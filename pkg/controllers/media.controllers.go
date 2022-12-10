@@ -67,17 +67,24 @@ func (mdc *MediaController) Get(w http.ResponseWriter, r *http.Request /**, auth
 	utils.ResponseSuccess(&w, res)
 }
 func (mdc *MediaController) GetById(w http.ResponseWriter, r *http.Request /**, authUser *models.User) **/) {
-	media_id := r.URL.Query().Get("media_id")
+	media_id := mux.Vars(r)["media_id"]
 	if media_id == "" {
 		utils.ResponseStringError(&w, "media_id is required")
+		return
 	}
 	res, e := mdc.mediaService.FindById(r.Context(), media_id)
 	if e != nil {
 		utils.ResponseError(&w, e)
 		return
 	}
-	utils.ResponseSuccess(&w, res)
-
+	// data, err := os.ReadFile("."+res.Path);
+	// if err != nil {
+	// 	utils.ResponseStringError(&w, err.Error())
+	// 	return
+	// }
+	// w.Write(data)
+	http.ServeFile(w, r, "."+res.Path)
+	// utils.ResponseSuccess(&w, res)
 }
 
 func (mdc *MediaController) Delete(w http.ResponseWriter, r *http.Request /**, authUser *models.User) **/) {

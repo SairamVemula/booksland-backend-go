@@ -43,6 +43,7 @@ func main() {
 	routes.RegisterMediaRoutes(r, logger, configs, validator)
 	routes.RegisterStocksRoutes(r, logger, configs, validator)
 	routes.RegisterFeedsRoutes(r, logger, configs, validator)
+	routes.RegisterCartRoutes(r, logger, configs, validator)
 
 	srv := &http.Server{
 		Addr: configs.ServerAddress,
@@ -50,7 +51,19 @@ func main() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      cors.AllowAll().Handler(r), // Pass our instance of gorilla/mux in.
+		Handler: cors.New(cors.Options{
+			AllowedOrigins: []string{"http://localhost:3000", "http://localhost:3001"},
+			AllowedMethods: []string{
+				http.MethodHead,
+				http.MethodGet,
+				http.MethodPost,
+				http.MethodPut,
+				http.MethodPatch,
+				http.MethodDelete,
+			},
+			AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+			AllowCredentials: true,
+		}).Handler(r), // Pass our instance of gorilla/mux in.
 
 	}
 

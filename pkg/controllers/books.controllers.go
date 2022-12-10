@@ -63,11 +63,12 @@ func (bc *BookController) Get(w http.ResponseWriter, r *http.Request, authUser *
 	utils.ResponseSuccess(&w, res)
 }
 func (bc *BookController) GetById(w http.ResponseWriter, r *http.Request, authUser *models.User) {
-	user_id := r.URL.Query().Get("id")
-	if user_id == "" {
-		utils.ResponseStringError(&w, "user_id is required")
+	book_id := mux.Vars(r)["book_id"]
+	if book_id == "" {
+		utils.ResponseStringError(&w, "book_id is required")
+		return
 	}
-	res, e := bc.bookService.FindById(r.Context(), user_id)
+	res, e := bc.bookService.FindById(r.Context(), book_id)
 	if e != nil {
 		utils.ResponseError(&w, e)
 		return

@@ -13,7 +13,7 @@ type Feed struct {
 	Type      string             `json:"type,omitempty" bson:"type,omitempty"`           // sections,courses,books
 	ViewType  string             `json:"view_type,omitempty" bson:"view_type,omitempty"` // banner, 2dvstack, vstack,hstack
 	Linked    string             `json:"linked,omitempty" bson:"linked,omitempty"`
-	Paralink  string             `validate:"required,min=2,max=50" json:"paralink,omitempty" bson:"paralink,omitempty"`
+	Paralinks []string           `validate:"required" json:"paralinks,omitempty" bson:"paralinks,omitempty"`
 	Sections  []Section          `json:"sections,omitempty" bson:"sections,omitempty"`
 	Order     int                `validate:"required,number" json:"order,omitempty" bson:"order,omitempty"`
 	CreatedBy primitive.ObjectID `json:"created_by,omitempty" bson:"created_by,omitempty"`

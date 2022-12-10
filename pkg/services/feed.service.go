@@ -51,7 +51,7 @@ func (fs *FeedService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 		query["_id"] = _id
 	}
 	if params.Paralink != "" {
-		query["paralink"] = params.Paralink
+		query["paralinks"] = bson.M{"$elemMatch": bson.M{"$eq": params.Paralink}}
 	}
 
 	if params.Search != "" {
@@ -224,7 +224,7 @@ func (fs *FeedService) Find(ctx context.Context, params *GetQuery) (bson.M, *uti
 			{"created_on", bson.M{"$first": "$created_on"}},
 			{"updated_on", bson.M{"$first": "$updated_on"}},
 			{"name", bson.M{"$first": "$name"}},
-			{"paralink", bson.M{"$first": "$paralink"}},
+			{"paralinks", bson.M{"$first": "$paralinks"}},
 			{"title", bson.M{"$first": "$title"}},
 			{"type", bson.M{"$first": "$type"}},
 			{"view_type", bson.M{"$first": "$view_type"}},

@@ -12,19 +12,23 @@ type Verified struct {
 }
 
 type User struct {
-	ID           primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Type         string             `json:"type,omitempty" bson:"type,omitempty"`
-	Name         string             `validate:"required,min=3,max=40" json:"name,omitempty" bson:"name,omitempty"`
-	Phone        string             `validate:"required,numeric,min=10,max=10" json:"phone,omitempty" bson:"phone,omitempty"`
-	Email        string             `validate:"required,email" json:"email,omitempty" bson:"email,omitempty"`
-	Password     string             `validate:"required,min=8,max=20,passwd" json:"password,omitempty" bson:"password,omitempty"`
-	Location     []string           `json:"location,omitempty" bson:"location,omitempty"`
-	Address      string             `json:"address,omitempty" bson:"address,omitempty"`
-	Token        string             `json:"token,omitempty" bson:"token,omitempty"`
-	RefreshToken string             `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
-	Verified     Verified           `json:"verified,omitempty" bson:"verified,omitempty"`
-	CreatedOn    int64              `json:"created_on,omitempty" bson:"created_on,omitempty"`
-	UpdatedOn    int64              `json:"updated_on,omitempty" bson:"updated_on,omitempty"`
+	ID                 primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Type               string             `json:"type,omitempty" bson:"type,omitempty"`
+	Name               string             `validate:"required,min=3,max=40" json:"name,omitempty" bson:"name,omitempty"`
+	Phone              string             `validate:"required,numeric,min=10,max=10" json:"phone,omitempty" bson:"phone,omitempty"`
+	Email              string             `validate:"required,email" json:"email,omitempty" bson:"email,omitempty"`
+	Password           string             `validate:"required,min=8,max=20,passwd" json:"password,omitempty" bson:"password,omitempty"`
+	Location           []string           `json:"location,omitempty" bson:"location,omitempty"`
+	Address            string             `json:"address,omitempty" bson:"address,omitempty"`
+	City               string             `json:"city,omitempty" bson:"city,omitempty"`
+	State              string             `json:"state,omitempty" bson:"state,omitempty"`
+	Token              string             `json:"token,omitempty" bson:"token,omitempty"`
+	TokenExpiry        int64              `json:"token_expiry,omitempty" bson:"token_expiry,omitempty"`
+	RefreshToken       string             `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
+	RefreshTokenExpiry int64              `json:"refresh_token_expiry,omitempty" bson:"refresh_token_expiry,omitempty"`
+	Verified           Verified           `json:"verified,omitempty" bson:"verified,omitempty"`
+	CreatedOn          int64              `json:"created_on,omitempty" bson:"created_on,omitempty"`
+	UpdatedOn          int64              `json:"updated_on,omitempty" bson:"updated_on,omitempty"`
 }
 
 func NewUser(user *User) {
