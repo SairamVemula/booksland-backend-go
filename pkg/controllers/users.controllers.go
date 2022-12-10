@@ -47,6 +47,8 @@ func (uc *UserController) GetUserDetails(w http.ResponseWriter, r *http.Request,
 		utils.ResponseError(&w, e)
 		return
 	}
+	res.Token = ""
+	res.RefreshToken = ""
 	utils.ResponseSuccess(&w, res)
 	return
 }

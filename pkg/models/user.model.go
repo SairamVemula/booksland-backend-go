@@ -22,6 +22,7 @@ type User struct {
 	Address            string             `json:"address,omitempty" bson:"address,omitempty"`
 	City               string             `json:"city,omitempty" bson:"city,omitempty"`
 	State              string             `json:"state,omitempty" bson:"state,omitempty"`
+	Pincode            string             `json:"pincode,omitempty" bson:"pincode,omitempty"`
 	Token              string             `json:"token,omitempty" bson:"token,omitempty"`
 	TokenExpiry        int64              `json:"token_expiry,omitempty" bson:"token_expiry,omitempty"`
 	RefreshToken       string             `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`

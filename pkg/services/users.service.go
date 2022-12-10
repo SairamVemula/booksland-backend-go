@@ -90,6 +90,7 @@ func (us *UserService) FindById(ctx context.Context, user_id string) (*models.Us
 		RestError := utils.NotFound("user not found.")
 		return nil, RestError
 	}
+
 	return &user, nil
 }
 
