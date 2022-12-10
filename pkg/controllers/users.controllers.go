@@ -50,7 +50,6 @@ func (uc *UserController) GetUserDetails(w http.ResponseWriter, r *http.Request,
 	res.Token = ""
 	res.RefreshToken = ""
 	utils.ResponseSuccess(&w, res)
-	return
 }
 func (uc *UserController) GetUsers(w http.ResponseWriter, r *http.Request, authUser *models.User) {
 	query := r.URL.Query()
